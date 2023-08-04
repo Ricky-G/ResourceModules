@@ -29,8 +29,9 @@ param restartPolicy string = 'Always'
 @description('Optional. Specifies if the IP is exposed to the public internet or private VNET. - Public or Private.')
 param ipAddressType string = 'Public'
 
-@description('Optional. The image registry credentials by which the container group is created from.')
-param imageRegistryCredentials array = []
+@description('Optional. Secure and sensitive parameter containing an array of objects. Each object represents a set of credentials to authenticate to an image registry, allowing the container group to pull the required images. Each object must include properties for "server" (the URL of the image registry), "username" (the username for authenticating to the image registry), and "password" (the password or token for authenticating to the image registry). For example: { "myArray": [ { "server": "acrUrl", "username": "myUsername", "password": "myPassword" }, { "server": "acrUrl2", "username": "myUsername2", "password": "myPassword2" } ] }. This parameter is handled securely to protect sensitive data.')
+@secure()
+param secureImageRegistryCredentials object = {}
 
 @description('Optional. Location for all Resources.')
 param location string = resourceGroup().location
@@ -108,6 +109,8 @@ var identity = identityType != 'None' ? {
   type: identityType
   userAssignedIdentities: !empty(userAssignedIdentities) ? userAssignedIdentities : null
 } : null
+
+var imageRegistryCredentials = empty(secureImageRegistryCredentials) ? null : secureImageRegistryCredentials.myArray
 
 resource defaultTelemetry 'Microsoft.Resources/deployments@2021-04-01' = if (enableDefaultTelemetry) {
   name: 'pid-47ed15a6-730a-4827-bcb4-0fd963ffbd82-${uniqueString(deployment().name, location)}'
